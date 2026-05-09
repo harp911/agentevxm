@@ -6,6 +6,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [flights, setFlights] = useState<any[] | null>(null);
   const [hotels, setHotels] = useState<any[] | null>(null);
+  const [scrapeMeta, setScrapeMeta] = useState<any>(null);
   const [searchParams, setSearchParams] = useState<any>(null);
   
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
@@ -38,6 +39,7 @@ export default function Home() {
       
       setFlights(json.flights);
       setHotels(json.hotels);
+      setScrapeMeta(json.scrapeMeta);
     } catch (error: any) {
       console.error(error);
       alert("Error en el scraping: " + error.message);
@@ -228,8 +230,15 @@ export default function Home() {
         </div>
 
         {/* Resultados: Dos Columnas */}
-        {flights && hotels && (
+        {flights && hotels && scrapeMeta && (
           <div className="space-y-6">
+            
+            {/* Aviso de Transparencia */}
+            <div className="bg-green-50 text-green-800 p-4 rounded-lg font-semibold flex items-center border border-green-200 shadow-sm text-sm">
+              <span className="mr-2">✔️</span>
+              Resultados verificados y extraídos de {scrapeMeta.source} el {scrapeMeta.timestamp}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* COLUMNA VUELOS */}
