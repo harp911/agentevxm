@@ -55,11 +55,11 @@ export default function Home() {
     text += `Régimen: ${pkg.hotel.regimen}\n\n`;
     
     text += `*INVERSIÓN*\n`;
-    text += `Por persona: *$${pkg.costoPaquetePorPersona} USD*\n`;
-    text += `Total paquete: *$${pkg.costoPaqueteTotal} USD*\n\n`;
+    text += `Por persona: *$${pkg.costoPaquetePorPersona} COP*\n`;
+    text += `Total paquete: *$${pkg.costoPaqueteTotal} COP*\n\n`;
     
     text += `¿Te gustaría proceder con la reserva de esta opción?\n\n`;
-    text += `Atentamente,\n*Asesor VXM*`;
+    text += `Atentamente,\n*${searchParams.nombreAsesor || 'Asesor VXM'}*\n📞 ${searchParams.telefonoAsesor || ''}\n✉️ ${searchParams.correoAsesor || ''}`;
 
     navigator.clipboard.writeText(text).then(() => {
         alert('Texto de WhatsApp copiado al portapapeles.');
@@ -72,11 +72,14 @@ export default function Home() {
     let body = `Hola,\n\nTe comparto esta excelente opción para tu próximo viaje a ${searchParams.destino}.\n\n`;
     body += `✈️ VUELOS\n- Ida: ${pkg.vueloIda.aerolinea} (${pkg.vueloIda.horarios})\n- Regreso: ${pkg.vueloRegreso.aerolinea} (${pkg.vueloRegreso.horarios})\n- Escalas: ${pkg.vueloIda.escalas}\n- Equipaje: ${pkg.vueloIda.equipaje}\n\n`;
     body += `🏨 HOTEL\n- Nombre: ${pkg.hotel.nombre} (${pkg.hotel.estrellas} estrellas)\n- Ubicación: ${pkg.hotel.zona}\n- Alimentación: ${pkg.hotel.regimen}\n\n`;
-    body += `💰 RESUMEN DE PRECIOS\n- Fechas: ${pkg.fechaSalida} al ${pkg.fechaRegreso} (${searchParams.diasViaje} noches)\n- Pasajeros: ${searchParams.personas}\n- Precio por persona: $${pkg.costoPaquetePorPersona} USD\n- Precio Total: $${pkg.costoPaqueteTotal} USD\n\n`;
-    body += `Quedo a tu disposición para cualquier consulta.\n\nSaludos cordiales,\nAsesor VXM`;
+    body += `💰 RESUMEN DE PRECIOS\n- Fechas: ${pkg.fechaSalida} al ${pkg.fechaRegreso} (${searchParams.diasViaje} noches)\n- Pasajeros: ${searchParams.personas}\n- Precio por persona: $${pkg.costoPaquetePorPersona} COP\n- Precio Total: $${pkg.costoPaqueteTotal} COP\n\n`;
+    body += `Quedo a tu disposición para cualquier consulta.\n\nSaludos cordiales,\n${searchParams.nombreAsesor || 'Asesor VXM'}\nTel: ${searchParams.telefonoAsesor || ''}\nCorreo: ${searchParams.correoAsesor || ''}`;
     
     window.open(`mailto:?subject=${subject}&body=${encodeURIComponent(body)}`, '_blank');
   };
+
+  const minPrice = results && results.length > 0 ? results[0].costoPaquetePorPersona : 0;
+  const maxPrice = results && results.length > 0 ? results[results.length - 1].costoPaquetePorPersona : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans p-4">
@@ -172,6 +175,25 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Datos del Asesor */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Firma del Asesor</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">Nombre</label>
+                  <input name="nombreAsesor" type="text" required placeholder="Ej. Juan Pérez" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">Teléfono</label>
+                  <input name="telefonoAsesor" type="tel" required placeholder="Ej. +57 300 000 0000" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">Correo</label>
+                  <input name="correoAsesor" type="email" required placeholder="asesor@viajandoxelmundo.com" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+              </div>
+            </div>
+
             <div className="text-center pt-4">
               <button disabled={loading} type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform active:scale-95 disabled:opacity-50">
                 {loading ? "Generando Combinaciones..." : "Generar Opciones Reales"}
@@ -184,8 +206,8 @@ export default function Home() {
         {results && (
           <div className="space-y-6">
             <div className="bg-blue-50 text-blue-800 p-4 rounded-lg font-semibold flex justify-between items-center border border-blue-100">
-              <span>✅ Se generaron {results.length} combinaciones</span>
-              <span className="text-sm font-normal">Ordenadas de menor a mayor precio. Sin filtro de presupuesto.</span>
+              <span>✅ Se encontraron {results.length} paquetes. Rango: ${minPrice} COP - ${maxPrice} COP por persona</span>
+              <span className="text-sm font-normal">Sin filtro de presupuesto.</span>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
@@ -199,8 +221,8 @@ export default function Home() {
                       <p className="text-sm text-gray-500">Para {searchParams.personas} pasajero(s) • {searchParams.diasViaje} noches</p>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-black text-blue-600">${pkg.costoPaquetePorPersona} <span className="text-sm font-normal text-gray-600">USD p.p.</span></div>
-                      <div className="text-sm text-gray-500 font-medium">Total: ${pkg.costoPaqueteTotal} USD</div>
+                      <div className="text-2xl font-black text-blue-600">${pkg.costoPaquetePorPersona} <span className="text-sm font-normal text-gray-600">COP p.p.</span></div>
+                      <div className="text-sm text-gray-500 font-medium">Total: ${pkg.costoPaqueteTotal} COP</div>
                     </div>
                   </div>
 
