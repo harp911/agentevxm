@@ -267,7 +267,8 @@ export default function Home() {
                       <div className="text-sm text-gray-600 ml-7 space-y-1">
                         <p><strong>Ida:</strong> {flight.vueloIda.origen} → {flight.vueloIda.destino} | {flight.vueloIda.fecha} | {flight.vueloIda.horaSalida} - {flight.vueloIda.horaLlegada} ({flight.vueloIda.duracion})</p>
                         <p><strong>Regreso:</strong> {flight.vueloRegreso.origen} → {flight.vueloRegreso.destino} | {flight.vueloRegreso.fecha} | {flight.vueloRegreso.horaSalida} - {flight.vueloRegreso.horaLlegada} ({flight.vueloRegreso.duracion})</p>
-                        <p className="mt-2 text-xs">Escalas: {flight.escalas} | Eq: {flight.equipajeIncluido ? 'Sí' : 'No'} | {flight.clase}</p>
+                        <p className="mt-2 text-xs font-semibold text-gray-800">Duración: {flight.noches} noches en destino</p>
+                        <p className="mt-1 text-xs">Escalas: {flight.escalas} | Eq: {flight.equipajeIncluido ? 'Sí' : 'No'} | {flight.clase}</p>
                       </div>
                     </label>
                   ))}
@@ -290,7 +291,10 @@ export default function Home() {
                             onChange={() => setSelectedHotelId(hotel.id)}
                             className="w-5 h-5 text-green-600 focus:ring-green-500"
                           />
-                          <span className="font-bold text-lg text-gray-800">#{idx + 1} {hotel.nombre}</span>
+                          <span className="font-bold text-lg text-gray-800">
+                            #{idx + 1} {hotel.nombre} 
+                            {hotel.isLowQuality && <span className="ml-2 text-amber-500" title="Hotel sin estrellas definidas o con rating menor a 6.0">⚠️</span>}
+                          </span>
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-green-700">{formatCurrency(hotel.precioTotal)} <span className="text-xs text-gray-500 font-normal">total</span></div>
@@ -298,7 +302,10 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="text-sm text-gray-600 ml-7 space-y-1">
-                        <p>⭐ {hotel.estrellas} Estrellas | 🏅 {hotel.rating}/10</p>
+                        <p>
+                           {hotel.estrellas !== "N/A" ? `⭐ ${hotel.estrellas} Estrellas` : "⚠️ Estrellas no especificadas"} | 
+                           {hotel.rating !== "N/A" ? ` 🏅 ${hotel.rating}/10` : " ⚠️ Rating no disponible"}
+                        </p>
                         <p>📍 {hotel.zona}</p>
                         <p>🍽️ {hotel.regimen}</p>
                         <a href={hotel.enlace} target="_blank" className="text-blue-500 hover:underline text-xs" onClick={e => e.stopPropagation()}>Ver Hotel ↗</a>
