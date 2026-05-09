@@ -80,23 +80,52 @@ export default function Home() {
               </div>
             </div>
 
+            {/* Fuentes de Búsqueda */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-4">Fuentes de Búsqueda</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">7. URL Búsqueda Vuelos</label>
+                  <input name="urlVuelos" type="url" required defaultValue="https://www.google.com/travel/flights" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">8. URL Búsqueda Hoteles</label>
+                  <input name="urlHoteles" type="url" required defaultValue="https://www.booking.com" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+              </div>
+            </div>
+
             {/* Preferencias */}
             <div>
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Preferencias</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold mb-1">Clase de Vuelo</label>
+                  <label className="text-sm font-semibold mb-1">9. Clase de Vuelo</label>
                   <select name="clase" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
                     <option>Económica</option>
                     <option>Ejecutiva</option>
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold mb-1">Escalas</label>
+                  <label className="text-sm font-semibold mb-1">10. Aerolínea Preferida</label>
+                  <input name="aerolinea" type="text" placeholder="Cualquiera (Opcional)" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">11. Escalas</label>
                   <select name="escalas" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
                     <option>Sin límite</option>
                     <option>Solo directo</option>
                     <option>Máx. 1</option>
+                    <option>Máx. 2</option>
+                  </select>
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm font-semibold mb-1">12. Régimen Alimenticio</label>
+                  <select name="regimen" className="border p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option>Sin preferencia</option>
+                    <option>Solo alojamiento</option>
+                    <option>Desayuno</option>
+                    <option>Todo incluido</option>
                   </select>
                 </div>
               </div>
