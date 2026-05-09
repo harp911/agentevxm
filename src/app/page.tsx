@@ -250,11 +250,14 @@ export default function Home() {
                       </div>
                       <div className="text-right">
                         <div className="text-3xl font-black text-blue-400">{formatCurrency(b.flight.precioVueloPP)} <span className="text-sm font-normal">p.p.</span></div>
-                        <div className="text-sm text-gray-400 bg-gray-900 px-3 py-1 rounded-full mt-2 inline-flex items-center gap-2">
-                          <span>✅ Verificado</span> | 
-                          <a href={b.flight.urlVerificacion} target="_blank" className="text-blue-400 hover:text-blue-300 underline">Ver Fuente ↗</a>
-                        </div>
                       </div>
+                    </div>
+
+                    {/* ENLACES DE VERIFICACIÓN - VUELOS */}
+                    <div className="mt-4 pt-4 border-t border-gray-700 text-xs space-y-1 text-gray-300">
+                      <div className="flex items-center gap-2">🔗 Verificar vuelo ida: <span className="text-red-400 font-semibold">❌ URL no disponible — consulta manualmente en Google Flights</span></div>
+                      <div className="flex items-center gap-2">🔗 Verificar vuelo regreso: <span className="text-red-400 font-semibold">❌ URL no disponible — consulta manualmente en Google Flights</span></div>
+                      <div className="flex items-center gap-2">🔗 Búsqueda completa: <a href={b.flight.urlVerificacion} target="_blank" className="text-blue-400 hover:text-blue-300 underline font-semibold">Abrir búsqueda ↗</a> <span className="text-green-400">✅ Enlace verificado</span></div>
                     </div>
                   </div>
 
@@ -291,9 +294,23 @@ export default function Home() {
                               <p className="text-sm text-gray-600 mb-1">
                                 {h.estrellas} ⭐ • Rating: <strong>{h.rating}</strong> • 📍 {h.zona}
                               </p>
-                              <p className="text-sm text-gray-500">
-                                🍽️ {h.regimen} • <a href={h.enlace} target="_blank" className="text-blue-500 underline ml-2" onClick={e => e.stopPropagation()}>Ver Hotel ↗</a>
+                              <p className="text-sm text-gray-500 mb-2">
+                                🍽️ {h.regimen}
                               </p>
+                              
+                              {/* ENLACES DE VERIFICACIÓN - HOTEL */}
+                              <div className="text-xs space-y-1 text-gray-500 border-l-2 border-gray-200 pl-2">
+                                <div className="flex items-center gap-2">
+                                  🔗 Ver hotel: 
+                                  <a href={`https://www.google.com/search?q=Hotel+${encodeURIComponent(h.nombre)}+${data.destino}`} target="_blank" className="text-blue-600 hover:underline">Búsqueda Google ↗</a> 
+                                  <span className="text-amber-500" title="Enlace genérico aproximado">⚠️ Enlace aproximado</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  🔗 Verificar disponibilidad: 
+                                  <a href={h.enlace} target="_blank" className="text-blue-600 hover:underline font-semibold">Abrir fechas en Google Travel ↗</a> 
+                                  <span className="text-green-600">✅ Enlace verificado</span>
+                                </div>
+                              </div>
                             </div>
 
                             <div className="flex-none text-right w-full lg:w-auto bg-white p-3 rounded-lg shadow-sm border">
@@ -309,6 +326,11 @@ export default function Home() {
                         );
                       })}
                     </div>
+                  </div>
+                  
+                  {/* NOTA DE VIGENCIA */}
+                  <div className="bg-gray-100 p-4 text-xs text-gray-500 text-center border-t border-gray-200">
+                    ⏱ <strong>Precios consultados el {scrapeMeta.timestamp}.</strong> Las tarifas aéreas y hoteleras cambian en tiempo real. Verifica los enlaces antes de cotizar al cliente.
                   </div>
                 </div>
               ))}
