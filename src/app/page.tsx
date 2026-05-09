@@ -8,7 +8,6 @@ export default function Home() {
   const [scrapeMeta, setScrapeMeta] = useState<any>(null);
   const [searchParams, setSearchParams] = useState<any>(null);
   
-  // Guardamos un objeto { flight, hotel } seleccionado
   const [selectedPackage, setSelectedPackage] = useState<any | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,7 +47,6 @@ export default function Home() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 0 }).format(num);
   };
 
-  // Calcular Resumen Ejecutivo
   let minVuelo = Infinity;
   let maxVuelo = -Infinity;
   let minPaquete = Infinity;
@@ -134,7 +132,6 @@ export default function Home() {
         <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100 mb-8">
           <h2 className="text-xl font-bold text-blue-600 border-b pb-2 mb-6">Parámetros de Búsqueda</h2>
           <form onSubmit={handleSubmit} className="space-y-8">
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col">
                 <label className="text-sm font-semibold mb-1">1. Origen (IATA Obligatorio)</label>
@@ -204,169 +201,168 @@ export default function Home() {
         {blocks && blocks.length > 0 && scrapeMeta && (
           <div className="space-y-8 animate-fade-in">
             
-            {/* Resumen Ejecutivo */}
+            {/* RESUMEN EJECUTIVO AL TOPE DE PANTALLA */}
             <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-indigo-200 p-6 rounded-xl shadow-sm text-indigo-900">
-              <h2 className="text-2xl font-black mb-4">📊 Resumen Ejecutivo del Algoritmo</h2>
+              <h2 className="text-2xl font-black mb-4">📊 Resumen Ejecutivo</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-medium">
                 <div>
-                  <p>🔍 Se analizaron <strong>{scrapeMeta.analyzedDates} combinaciones de fechas</strong> en el rango.</p>
-                  <p>🗓️ Se aislaron los <strong>{scrapeMeta.blocksFound} bloques de fechas</strong> con los vuelos más económicos.</p>
-                  <p>💸 Rango de Vuelos: <strong>{formatCurrency(minVuelo)} — {formatCurrency(maxVuelo)} p.p.</strong></p>
-                  <p>🏨 Rango de Paquetes: <strong>{formatCurrency(minPaquete)} — {formatCurrency(maxPaquete)} p.p.</strong></p>
+                  <p>🔍 Se analizaron {scrapeMeta.analyzedDates} combinaciones de fechas en el rango.</p>
+                  <p>🗓️ Se identificaron las {scrapeMeta.blocksFound} fechas con vuelos más económicos.</p>
+                  <p>💸 Rango de vuelos: {formatCurrency(minVuelo)} — {formatCurrency(maxVuelo)} por persona.</p>
+                  <p>🏨 Rango de paquetes: {formatCurrency(minPaquete)} — {formatCurrency(maxPaquete)} por persona.</p>
                 </div>
                 <div className="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
-                  <p className="text-xs uppercase font-bold text-indigo-400 mb-1">Ganador Absoluto</p>
                   <p className="text-lg font-black text-indigo-700 flex items-center gap-2">
-                    <span>🏆</span> Mejor balance general
+                    <span>🏆</span> Mejor balance general:
                   </p>
                   <p className="mt-1">{mejorPaqueteAbsoluto?.hotelNombre} + {mejorPaqueteAbsoluto?.aerolinea}</p>
-                  <p className="text-xs text-indigo-500">Salida: {mejorPaqueteAbsoluto?.fechaOut} • {formatCurrency(mejorPaqueteAbsoluto?.precio)} pp</p>
+                  <p className="text-xs text-indigo-500">el {mejorPaqueteAbsoluto?.fechaOut} • {formatCurrency(mejorPaqueteAbsoluto?.precio)} pp</p>
                 </div>
               </div>
-              <p className="mt-4 text-xs text-indigo-400">✅ Verificado en Google Travel (SerpApi) el {scrapeMeta.timestamp}</p>
             </div>
 
-            {/* Listado de Bloques */}
+            {/* PRESENTACIÓN EN COLUMNA DE BLOQUES EXACTOS ASCII */}
             <div className="space-y-12">
-              {blocks.map((b, bIdx) => (
-                <div key={bIdx} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  
-                  {/* CABECERA VUELO */}
-                  <div className="bg-gray-800 text-white p-6 relative">
-                    <div className="absolute top-0 left-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-br-lg">
-                      FECHA ÓPTIMA #{bIdx + 1}
-                    </div>
-                    <div className="mt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                      <div>
-                        <h3 className="text-2xl font-black flex items-center gap-2">
-                          ✈️ {b.flight.aerolinea} <span className="text-sm font-normal text-gray-400">({b.flight.numeroVuelo})</span>
-                        </h3>
-                        <p className="text-gray-300 mt-1">
-                          <strong>Sale:</strong> {b.flight.dateOut} • <strong>Regresa:</strong> {b.flight.dateRet} ({searchParams.diasViaje} noches)
-                        </p>
-                        <p className="text-gray-400 text-sm mt-1">
-                          {data.origen} → {data.destino} • {b.flight.horaSalida} a {b.flight.horaLlegada} ({b.flight.duracion}) • {b.flight.escalas}
-                        </p>
+              {blocks.map((b, bIdx) => {
+                const googleFlightsUrl = `https://www.google.com/travel/flights?q=vuelos+${searchParams.origen}+a+${searchParams.destino}&dates=${b.flight.dateOut},${b.flight.dateRet}`;
+                const hasVerificacionGoogle = b.flight.urlVerificacion && b.flight.urlVerificacion !== "https://www.google.com/travel/flights";
+
+                return (
+                  <div key={bIdx} className="bg-white rounded-xl shadow-lg border-2 border-gray-800 overflow-hidden font-mono text-sm">
+                    
+                    {/* CABECERA VUELO ASCII */}
+                    <div className="bg-gray-100 text-gray-900 p-5 relative border-b-2 border-gray-800">
+                      <div className="absolute -top-[1px] left-4 bg-gray-800 text-white text-xs font-bold px-3 py-1 rounded-b-md">
+                        FECHA ÓPTIMA #{bIdx + 1}
                       </div>
-                      <div className="text-right">
-                        <div className="text-3xl font-black text-blue-400">{formatCurrency(b.flight.precioVueloPP)} <span className="text-sm font-normal">p.p.</span></div>
+                      
+                      <div className="mt-4 space-y-2">
+                        <div className="flex justify-between font-bold">
+                          <span>✈ {b.flight.aerolinea} · Sale {b.flight.dateOut} {b.flight.horaSalida} · Llega {b.flight.horaLlegada}</span>
+                        </div>
+                        <div>
+                          <span>Regreso: Sale {b.flight.dateRet} · Llega a destino de origen</span>
+                        </div>
+                        <div className="text-gray-600">
+                          <span>Escalas: {b.flight.escalas} · Equipaje: {b.flight.equipajeIncluido ? "Sí" : "No (o verificar)"} · Clase: {b.flight.clase}</span>
+                        </div>
+                        <div className="font-bold text-blue-700 pt-2 border-t border-gray-300">
+                          <span>Precio vuelo: {formatCurrency(b.flight.precioVueloPP)} p.p. · Total vuelos: {formatCurrency(b.flight.precioVueloTotal)}</span>
+                        </div>
+                        
+                        <div className="pt-2 text-xs space-y-1">
+                          <div>🔗 Verificar vuelo ida <span className="mx-2">→</span> <span className="text-red-600">❌ URL no disponible — verificar manualmente en fuente</span></div>
+                          <div>🔗 Verificar vuelo regreso <span className="mx-2">→</span> <span className="text-red-600">❌ URL no disponible — verificar manualmente en fuente</span></div>
+                          <div>🔗 Ver búsqueda completa <span className="mx-2">→</span> <a href={googleFlightsUrl} target="_blank" className="text-blue-600 hover:underline">Google Flights (Búsqueda Equivalente)</a></div>
+                          <div className="pt-2">🕐 Consultado: {scrapeMeta.timestamp} <span className="ml-2 font-bold text-green-600">✅ Verificado ({scrapeMeta.source})</span></div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* ENLACES DE VERIFICACIÓN - VUELOS */}
-                    <div className="mt-4 pt-4 border-t border-gray-700 text-xs space-y-1 text-gray-300">
-                      <div className="flex items-center gap-2">🔗 Verificar vuelo ida: <span className="text-red-400 font-semibold">❌ URL no disponible — consulta manualmente en Google Flights</span></div>
-                      <div className="flex items-center gap-2">🔗 Verificar vuelo regreso: <span className="text-red-400 font-semibold">❌ URL no disponible — consulta manualmente en Google Flights</span></div>
-                      <div className="flex items-center gap-2">🔗 Búsqueda completa: <a href={b.flight.urlVerificacion} target="_blank" className="text-blue-400 hover:text-blue-300 underline font-semibold">Abrir búsqueda ↗</a> <span className="text-green-400">✅ Enlace verificado</span></div>
-                    </div>
-                  </div>
+                    {/* CUERPO HOTELES ASCII */}
+                    <div className="p-5">
+                      <p className="font-bold mb-4">Hoteles disponibles para estas fechas:</p>
+                      
+                      <div className="space-y-4">
+                        {b.hotels.map((h: any, hIdx: number) => {
+                          const isSelected = selectedPackage?.hotel?.id === h.id;
+                          const bookingUrl = `https://www.booking.com/searchresults.html?ss=${searchParams.destino}&checkin=${b.flight.dateOut}&checkout=${b.flight.dateRet}&group_adults=${searchParams.personas}`;
+                          const googleHotelUrl = `https://www.google.com/search?q=Hotel+${encodeURIComponent(h.nombre)}+${searchParams.destino}`;
 
-                  {/* CUERPO HOTELES */}
-                  <div className="p-0 bg-gray-50">
-                    <div className="px-6 py-3 bg-gray-100 border-b text-sm font-bold text-gray-600 uppercase">
-                      🏨 Hoteles disponibles en estas fechas exactas
-                    </div>
-                    <div className="divide-y divide-gray-200">
-                      {b.hotels.map((h: any, hIdx: number) => {
-                        const isSelected = selectedPackage?.hotel?.id === h.id;
-                        return (
-                          <label key={hIdx} className={`flex flex-col lg:flex-row items-center gap-6 p-6 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-white'}`}>
-                            
-                            <div className="flex-none pt-1">
-                              <input 
-                                type="radio" 
-                                name="hotel_selection" 
-                                checked={isSelected}
-                                onChange={() => setSelectedPackage({ flight: b.flight, hotel: h })}
-                                className="w-6 h-6 text-blue-600"
-                              />
-                            </div>
-
-                            <div className="flex-1 w-full">
-                              <div className="flex flex-wrap items-center gap-2 mb-2">
-                                <span className="font-bold text-lg text-gray-900">{h.nombre}</span>
-                                {h.etiquetas.map((tag: string, tIdx: number) => (
-                                  <span key={tIdx} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full border border-yellow-200 font-bold">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                              <p className="text-sm text-gray-600 mb-1">
-                                {h.estrellas} ⭐ • Rating: <strong>{h.rating}</strong> • 📍 {h.zona}
-                              </p>
-                              <p className="text-sm text-gray-500 mb-2">
-                                🍽️ {h.regimen}
-                              </p>
-                              
-                              {/* ENLACES DE VERIFICACIÓN - HOTEL */}
-                              <div className="text-xs space-y-1 text-gray-500 border-l-2 border-gray-200 pl-2">
-                                <div className="flex items-center gap-2">
-                                  🔗 Ver hotel: 
-                                  <a href={`https://www.google.com/search?q=Hotel+${encodeURIComponent(h.nombre)}+${data.destino}`} target="_blank" className="text-blue-600 hover:underline">Búsqueda Google ↗</a> 
-                                  <span className="text-amber-500" title="Enlace genérico aproximado">⚠️ Enlace aproximado</span>
+                          return (
+                            <div key={hIdx} className={`border border-gray-300 rounded p-4 ${isSelected ? 'bg-blue-50 border-blue-400' : 'bg-white hover:bg-gray-50'}`}>
+                              <div className="flex flex-col lg:flex-row justify-between gap-4">
+                                
+                                <div className="space-y-1">
+                                  <div className="font-bold text-base flex flex-wrap gap-2 items-center">
+                                    {h.etiquetas.map((tag: string, tIdx: number) => (
+                                      <span key={tIdx} className="bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded border border-yellow-300">
+                                        {tag}
+                                      </span>
+                                    ))}
+                                    {h.nombre} 
+                                    {h.incoherente && <span className="text-red-500" title="Nombre posiblemente incoherente">⚠️ Verificar nombre</span>}
+                                    {h.isLowQuality && <span className="text-amber-500">⚠️ Rating bajo o sin categoría</span>}
+                                  </div>
+                                  <div className="text-gray-600">
+                                    {h.estrellas !== "N/A" ? `★ ${h.estrellas}` : "★ N/A"} · Rating: {h.rating}/10 · {h.zona} · {h.regimen}
+                                  </div>
+                                  <div className="font-bold">
+                                    {formatCurrency(h.precioPorNoche)}/noche · {formatCurrency(h.costoHotelTotal)} total · <span className="text-green-700">Paquete: {formatCurrency(h.costoPaquetePP)} p.p.</span>
+                                  </div>
+                                  
+                                  <div className="pt-2 text-xs space-y-1">
+                                    <div>🔗 Ver hotel <span className="mx-2">→</span> <a href={googleHotelUrl} target="_blank" className="text-blue-600 hover:underline">Búsqueda en Google</a></div>
+                                    <div>🔗 Verificar disponibilidad <span className="mx-2">→</span> <a href={bookingUrl} target="_blank" className="text-blue-600 hover:underline">Ver en Booking.com (Fechas Exactas)</a></div>
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  🔗 Verificar disponibilidad: 
-                                  <a href={h.enlace} target="_blank" className="text-blue-600 hover:underline font-semibold">Abrir fechas en Google Travel ↗</a> 
-                                  <span className="text-green-600">✅ Enlace verificado</span>
-                                </div>
-                              </div>
-                            </div>
 
-                            <div className="flex-none text-right w-full lg:w-auto bg-white p-3 rounded-lg shadow-sm border">
-                              <div className="text-sm text-gray-500 mb-1">Solo Hotel: {formatCurrency(h.precioPorNoche)}/noche ({formatCurrency(h.costoHotelTotal)} total)</div>
-                              <div className="text-lg font-black text-green-700 bg-green-50 px-3 py-1 rounded">
-                                Paquete: {formatCurrency(h.costoPaquetePP)} <span className="text-xs font-normal">p.p.</span>
-                              </div>
-                              <div className="text-xs text-gray-500 mt-1 font-bold">
-                                Paquete Total ({searchParams.personas} pax): {formatCurrency(h.costoPaqueteTotal)}
+                                <div className="flex items-end lg:items-center justify-end">
+                                  <label className="flex items-center gap-2 cursor-pointer bg-white border border-gray-300 px-4 py-2 rounded shadow-sm hover:bg-gray-100 font-bold">
+                                    <span className="text-green-600">✅</span>
+                                    <input 
+                                      type="radio" 
+                                      name="hotel_selection" 
+                                      checked={isSelected}
+                                      onChange={() => setSelectedPackage({ flight: b.flight, hotel: h })}
+                                      className="w-5 h-5 text-blue-600"
+                                    />
+                                    Seleccionar este paquete
+                                  </label>
+                                </div>
+
                               </div>
                             </div>
-                          </label>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
+
+                      {/* NOTA DE VIGENCIA */}
+                      <div className="mt-4 p-3 bg-gray-100 text-xs text-gray-500 text-center border border-gray-200 rounded">
+                        ⏱ Precios consultados el {scrapeMeta.timestamp}. Las tarifas aéreas y hoteleras cambian en tiempo real. Verifica los enlaces antes de cotizar al cliente.
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* NOTA DE VIGENCIA */}
-                  <div className="bg-gray-100 p-4 text-xs text-gray-500 text-center border-t border-gray-200">
-                    ⏱ <strong>Precios consultados el {scrapeMeta.timestamp}.</strong> Las tarifas aéreas y hoteleras cambian en tiempo real. Verifica los enlaces antes de cotizar al cliente.
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* SECCIÓN FLOTANTE DE COTIZACIÓN */}
-            <div className="fixed bottom-0 left-0 right-0 bg-blue-900 text-white p-4 shadow-2xl border-t-4 border-blue-500 z-50 transform transition-transform">
-              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-gray-900 text-white p-4 shadow-2xl border-t-4 border-blue-500 z-50">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 font-mono text-sm">
                 
                 {!selectedPackage ? (
-                  <div className="text-blue-200 animate-pulse text-lg font-bold w-full text-center">
-                    👈 Selecciona cualquier hotel de los bloques para armar la cotización final.
+                  <div className="text-blue-200 animate-pulse text-center w-full">
+                    👈 Selecciona [● Seleccionar este paquete] en cualquier bloque.
                   </div>
                 ) : (
                   <>
-                    <div className="flex-1 space-y-1 text-sm text-blue-100">
-                      <p className="flex items-center gap-2"><span className="text-xl">✈️</span> <strong>{selectedPackage.flight.aerolinea}</strong> • {selectedPackage.flight.dateOut} al {selectedPackage.flight.dateRet} ({formatCurrency(selectedPackage.flight.precioVueloPP)} pp)</p>
-                      <p className="flex items-center gap-2"><span className="text-xl">🏨</span> <strong>{selectedPackage.hotel.nombre}</strong> • {searchParams.diasViaje} Noches ({formatCurrency(selectedPackage.hotel.costoHotelTotal)} total)</p>
+                    <div className="flex-1 space-y-1">
+                      <p>Vuelo seleccionado : {selectedPackage.flight.aerolinea} · {selectedPackage.flight.dateOut} al {selectedPackage.flight.dateRet}</p>
+                      <p>Hotel seleccionado : {selectedPackage.hotel.nombre} · {selectedPackage.hotel.estrellas}★</p>
+                      <p>Score balance      : {Math.round(selectedPackage.hotel.scoreBalance)} {selectedPackage.hotel.etiquetas.join(" ")}</p>
                     </div>
                     
-                    <div className="bg-white text-gray-900 p-3 rounded-lg flex gap-6 items-center shadow-inner">
+                    <div className="bg-gray-800 text-white p-3 rounded border border-gray-700 flex gap-6 items-center">
                       <div>
-                        <p className="text-xs text-gray-500 font-bold uppercase">Costo Paquete p.p.</p>
-                        <p className="text-2xl font-black text-blue-600">{formatCurrency(selectedPackage.hotel.costoPaquetePP)}</p>
+                        <p className="text-gray-400">Costo vuelos</p>
+                        <p className="font-bold">{formatCurrency(selectedPackage.flight.precioVueloPP)} pp</p>
                       </div>
-                      <div className="border-l pl-6">
-                        <p className="text-xs text-gray-500 font-bold uppercase">Costo Total ({searchParams.personas} pax)</p>
-                        <p className="text-xl font-bold text-gray-800">{formatCurrency(selectedPackage.hotel.costoPaqueteTotal)}</p>
+                      <div className="border-l border-gray-700 pl-4">
+                        <p className="text-gray-400">Costo hotel</p>
+                        <p className="font-bold">{formatCurrency(selectedPackage.hotel.costoHotelTotal)} total ({searchParams.diasViaje} noches)</p>
+                      </div>
+                      <div className="border-l border-gray-700 pl-4">
+                        <p className="text-gray-400">Costo paquete</p>
+                        <p className="font-bold text-green-400">{formatCurrency(selectedPackage.hotel.costoPaquetePP)} pp · {formatCurrency(selectedPackage.hotel.costoPaqueteTotal)} total</p>
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <button onClick={generateWhatsApp} className="bg-green-500 hover:bg-green-400 text-white font-bold py-3 px-6 rounded-lg transition-colors whitespace-nowrap shadow-lg">
+                    <div className="flex flex-col gap-2">
+                      <button onClick={generateWhatsApp} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded shadow">
                         Generar WhatsApp
                       </button>
-                      <button onClick={generateEmail} className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg transition-colors whitespace-nowrap shadow-lg">
+                      <button onClick={generateEmail} className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded shadow">
                         Generar Correo
                       </button>
                     </div>

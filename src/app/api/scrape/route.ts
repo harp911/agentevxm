@@ -150,9 +150,20 @@ export async function POST(req: Request) {
           const costoHotelTotal = priceNightCOP * diasViaje;
           const costoPaquetePP = flight.precioVueloPP + Math.round(costoHotelTotal / personas);
           const costoPaqueteTotal = costoPaquetePP * personas;
-          const ratingNum = prop.overall_rating ? parseFloat(prop.overall_rating) : 6.0;
+          const isLowQuality = ratingNum < 6.0 || !hasEstrellas;
           
-          const scoreBalance = (ratingNum / costoPaquetePP) * 1000000; // Multiplicador para escalar
+          const lowerName = prop.name.toLowerCase();
+          const lowerDest = data.destino.toLowerCase();
+          const commonCities = ["dubai", "paris", "london", "londres", "tokyo", "madrid", "barcelona", "miami", "orlando"];
+          let incoherente = false;
+          if (!lowerName.includes(lowerDest)) {
+            for (const city of commonCities) {
+              if (lowerName.includes(city) && lowerDest !== city) {
+                incoherente = true;
+                break;
+              }
+            }
+          }
 
           hotelesProcesados.push({
             id: `hotel_${flight.dateOut}_${hotelesProcesados.length + 1}`,
@@ -167,6 +178,8 @@ export async function POST(req: Request) {
             costoPaqueteTotal,
             scoreBalance,
             ratingNum,
+            isLowQuality,
+            incoherente,
             enlace: prop.link || `https://www.google.com/travel/hotels/${data.destino}`,
             etiquetas: []
           });
@@ -192,8 +205,14 @@ export async function POST(req: Request) {
           if (h.ratingNum === maxRating && h.ratingNum >= 8.0) h.etiquetas.push("⭐ Mejor hotel");
         });
 
-        // Ordenar hoteles por mejor balance de primero
-        hotelesProcesados.sort((a, b) => b.scoreBalance - a.scoreBalance);
+        // Ordenar hoteles: primero mejor balance, pero empujar los de mala calidad o incoherentes al fondo
+        hotelesProcesados.sort((a, b) => {
+          const aBad = a.isLowQuality || a.incoherente;
+          const bBad = b.isLowQuality || b.incoherente;
+          if (aBad && !bBad) return 1;
+          if (!aBad && bBad) return -1;
+          return b.scoreBalance - a.scoreBalance;
+        });
 
         blocks.push({
           flight,
