@@ -4,21 +4,22 @@ import { useState } from "react";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<any[] | null>(null);
+  const [searchParams, setSearchParams] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setResults(null);
 
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
+    setSearchParams(data);
 
     try {
       const res = await fetch("/api/scrape", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -35,6 +36,46 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateWhatsApp = (pkg: any) => {
+    let text = `*Opciones de Viaje a ${searchParams.destino.toUpperCase()}* ✈️🏨\n\n`;
+    text += `*Fechas:* ${pkg.fechaSalida} al ${pkg.fechaRegreso}\n`;
+    text += `*Pasajeros:* ${searchParams.personas}\n`;
+    text += `*Duración:* ${searchParams.diasViaje} noches\n\n`;
+    
+    text += `*VUELOS* 🛫\n`;
+    text += `Ida: ${pkg.vueloIda.aerolinea} (${pkg.vueloIda.horarios})\n`;
+    text += `Regreso: ${pkg.vueloRegreso.aerolinea} (${pkg.vueloRegreso.horarios})\n`;
+    text += `Escalas: ${pkg.vueloIda.escalas}\n`;
+    text += `Equipaje: ${pkg.vueloIda.equipaje}\n\n`;
+    
+    text += `*HOTEL* 🏨\n`;
+    text += `Nombre: ${pkg.hotel.nombre} (${pkg.hotel.estrellas}⭐)\n`;
+    text += `Régimen: ${pkg.hotel.regimen}\n\n`;
+    
+    text += `*INVERSIÓN*\n`;
+    text += `Por persona: *$${pkg.costoPaquetePorPersona} USD*\n`;
+    text += `Total paquete: *$${pkg.costoPaqueteTotal} USD*\n\n`;
+    
+    text += `¿Te gustaría proceder con la reserva de esta opción?\n\n`;
+    text += `Atentamente,\n*Asesor VXM*`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        alert('Texto de WhatsApp copiado al portapapeles.');
+    });
+  };
+
+  const generateEmail = (pkg: any) => {
+    const subject = encodeURIComponent(`Propuesta de Viaje a ${searchParams.destino} - Viajando X el Mundo`);
+    
+    let body = `Hola,\n\nTe comparto esta excelente opción para tu próximo viaje a ${searchParams.destino}.\n\n`;
+    body += `✈️ VUELOS\n- Ida: ${pkg.vueloIda.aerolinea} (${pkg.vueloIda.horarios})\n- Regreso: ${pkg.vueloRegreso.aerolinea} (${pkg.vueloRegreso.horarios})\n- Escalas: ${pkg.vueloIda.escalas}\n- Equipaje: ${pkg.vueloIda.equipaje}\n\n`;
+    body += `🏨 HOTEL\n- Nombre: ${pkg.hotel.nombre} (${pkg.hotel.estrellas} estrellas)\n- Ubicación: ${pkg.hotel.zona}\n- Alimentación: ${pkg.hotel.regimen}\n\n`;
+    body += `💰 RESUMEN DE PRECIOS\n- Fechas: ${pkg.fechaSalida} al ${pkg.fechaRegreso} (${searchParams.diasViaje} noches)\n- Pasajeros: ${searchParams.personas}\n- Precio por persona: $${pkg.costoPaquetePorPersona} USD\n- Precio Total: $${pkg.costoPaqueteTotal} USD\n\n`;
+    body += `Quedo a tu disposición para cualquier consulta.\n\nSaludos cordiales,\nAsesor VXM`;
+    
+    window.open(`mailto:?subject=${subject}&body=${encodeURIComponent(body)}`, '_blank');
   };
 
   return (
@@ -133,7 +174,7 @@ export default function Home() {
 
             <div className="text-center pt-4">
               <button disabled={loading} type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-transform active:scale-95 disabled:opacity-50">
-                {loading ? "Scrapeando en progreso..." : "Generar Opciones Reales"}
+                {loading ? "Generando Combinaciones..." : "Generar Opciones Reales"}
               </button>
             </div>
           </form>
@@ -141,16 +182,57 @@ export default function Home() {
 
         {/* Resultados */}
         {results && (
-          <div className="bg-white p-8 rounded-xl shadow-md border border-gray-100">
-            <h2 className="text-xl font-bold text-blue-600 border-b pb-2 mb-6">Resultados Obtenidos</h2>
-            <div className="space-y-4">
-              {results.map((pkg: any, idx: number) => (
-                <div key={idx} className="border rounded-lg p-4 bg-gray-50 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-bold">Salida: {pkg.fechaSalida}</h4>
-                    <p className="text-sm text-gray-600">Vuelo extraído: {pkg.vueloData}</p>
+          <div className="space-y-6">
+            <div className="bg-blue-50 text-blue-800 p-4 rounded-lg font-semibold flex justify-between items-center border border-blue-100">
+              <span>✅ Se generaron {results.length} combinaciones</span>
+              <span className="text-sm font-normal">Ordenadas de menor a mayor precio. Sin filtro de presupuesto.</span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {results.map((pkg: any) => (
+                <div key={pkg.id} className="bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                  
+                  {/* Card Header */}
+                  <div className="bg-gray-50 border-b p-4 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold">📅 {pkg.fechaSalida} al {pkg.fechaRegreso}</h3>
+                      <p className="text-sm text-gray-500">Para {searchParams.personas} pasajero(s) • {searchParams.diasViaje} noches</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-black text-blue-600">${pkg.costoPaquetePorPersona} <span className="text-sm font-normal text-gray-600">USD p.p.</span></div>
+                      <div className="text-sm text-gray-500 font-medium">Total: ${pkg.costoPaqueteTotal} USD</div>
+                    </div>
                   </div>
-                  <div className="font-bold text-green-600">${pkg.precio}</div>
+
+                  {/* Card Body */}
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                      <h4 className="text-xs uppercase tracking-wider font-bold text-gray-400 mb-2">✈️ Vuelos</h4>
+                      <p className="text-sm mb-1"><strong>Ida:</strong> {pkg.vueloIda.aerolinea} • {pkg.vueloIda.horarios}</p>
+                      <p className="text-xs text-gray-500 mb-3">{pkg.vueloIda.escalas} • {pkg.vueloIda.clase} • Eq: {pkg.vueloIda.equipaje}</p>
+                      
+                      <p className="text-sm mb-1"><strong>Regreso:</strong> {pkg.vueloRegreso.aerolinea} • {pkg.vueloRegreso.horarios}</p>
+                      <p className="text-xs text-gray-500">{pkg.vueloRegreso.escalas} • {pkg.vueloRegreso.clase} • Eq: {pkg.vueloRegreso.equipaje}</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                      <h4 className="text-xs uppercase tracking-wider font-bold text-gray-400 mb-2">🏨 Alojamiento</h4>
+                      <p className="font-bold text-sm mb-1">{pkg.hotel.nombre}</p>
+                      <p className="text-xs text-gray-600 mb-1">⭐ {pkg.hotel.estrellas} Estrellas • 🏅 Rating: {pkg.hotel.rating}/10</p>
+                      <p className="text-xs text-gray-600 mb-1">📍 {pkg.hotel.zona}</p>
+                      <p className="text-xs text-gray-600">🍽️ {pkg.hotel.regimen}</p>
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="bg-gray-50 border-t p-4 flex gap-3 justify-end">
+                    <button onClick={() => generateWhatsApp(pkg)} className="bg-green-600 hover:bg-green-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors shadow-sm">
+                      WhatsApp
+                    </button>
+                    <button onClick={() => generateEmail(pkg)} className="bg-gray-700 hover:bg-gray-800 text-white text-sm font-bold py-2 px-4 rounded transition-colors shadow-sm">
+                      Correo
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
