@@ -5,83 +5,72 @@ export async function POST(req: Request) {
     const data = await req.json();
     console.log("Iniciando scraping (Mock en Vercel) para:", data);
 
-    const packages = [];
-    const startDate = new Date(data.fechaInicio);
-    const endDate = new Date(data.fechaFin);
-    const diasViaje = parseInt(data.diasViaje);
-    const personas = parseInt(data.personas);
-    
-    let currentDate = new Date(startDate);
+    const flights = [];
+    const hotels = [];
     
     // Simular el tiempo de scraping real
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    let idCounter = 1;
-
-    // 1. Generar combinaciones de fechas dentro del rango
-    while (currentDate <= endDate) {
-      const returnDate = new Date(currentDate);
-      returnDate.setDate(returnDate.getDate() + diasViaje);
+    // 1. Generar 8 opciones de vuelos (Ida y Regreso)
+    for (let i = 1; i <= 8; i++) {
+      const precioBaseVuelo = Math.floor(Math.random() * 800000) + 500000; // COP 500k a 1.3m pp
       
-      const fSalida = currentDate.toISOString().split("T")[0];
-      const fRegreso = returnDate.toISOString().split("T")[0];
-      
-      // 2 & 3. Simular captura de datos
       const vueloIda = {
-        aerolinea: data.aerolinea !== "Cualquiera (Opcional)" && data.aerolinea ? data.aerolinea : (Math.random() > 0.5 ? "Avianca" : "LATAM"),
-        horarios: "08:00 AM - 12:30 PM",
-        duracion: "4h 30m",
-        escalas: data.escalas,
-        equipaje: "Mochila + Cabina 10kg",
-        clase: data.clase,
+        origen: data.origen,
+        destino: data.destino,
+        fecha: data.fechaInicio,
+        horaSalida: `0${Math.floor(Math.random() * 9) + 6}:00 AM`,
+        horaLlegada: `${Math.floor(Math.random() * 3) + 10}:30 AM`,
+        duracion: "4h 30m"
       };
 
       const vueloRegreso = {
-        aerolinea: vueloIda.aerolinea,
-        horarios: "14:00 PM - 18:30 PM",
-        duracion: "4h 30m",
-        escalas: data.escalas,
-        equipaje: "Mochila + Cabina 10kg",
-        clase: data.clase,
+        origen: data.destino,
+        destino: data.origen,
+        fecha: data.fechaFin,
+        horaSalida: `0${Math.floor(Math.random() * 5) + 2}:00 PM`,
+        horaLlegada: `0${Math.floor(Math.random() * 3) + 6}:30 PM`,
+        duracion: "4h 30m"
       };
 
-      const hotel = {
-        nombre: `Hotel ${data.destino.toUpperCase()} Premium`,
-        estrellas: Math.floor(Math.random() * 2) + 3, // 3 to 4 stars
-        rating: (Math.random() * 2 + 7.5).toFixed(1), // 7.5 to 9.5
-        zona: "Centro Histórico / Zona Turística",
-        regimen: data.regimen,
-        precioNoche: Math.floor(Math.random() * 80) + 60, // $60 - $140
-      };
-
-      // 4. Construir paquetes y calcular costos
-      const costoVuelosPorPersona = Math.floor(Math.random() * 200) + 150; // Ida y vuelta
-      const costoHotelTotal = hotel.precioNoche * diasViaje;
-      const costoHotelPorPersona = costoHotelTotal / personas;
-      
-      const costoPaquetePorPersona = Math.round(costoVuelosPorPersona + costoHotelPorPersona);
-      const costoPaqueteTotal = Math.round(costoPaquetePorPersona * personas);
-
-      packages.push({
-        id: idCounter++,
-        fechaSalida: fSalida,
-        fechaRegreso: fRegreso,
+      flights.push({
+        id: `flight_${i}`,
+        aerolinea: data.aerolinea !== "Cualquiera (Opcional)" && data.aerolinea ? data.aerolinea : (Math.random() > 0.5 ? "Avianca" : "LATAM"),
+        numeroVuelo: `AV${Math.floor(Math.random() * 900) + 100}`,
         vueloIda,
         vueloRegreso,
-        hotel,
-        costoVuelosPorPersona,
-        costoHotelTotal,
-        costoPaquetePorPersona,
-        costoPaqueteTotal,
+        escalas: data.escalas === "Sin límite" ? "1 Escala (BOG, 2h)" : data.escalas,
+        equipajeIncluido: Math.random() > 0.3,
+        clase: data.clase,
+        precioPorPersona: precioBaseVuelo,
+        precioTotal: precioBaseVuelo * parseInt(data.personas)
       });
-
-      currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // 5. Mostrar TODOS los paquetes ordenados de menor a mayor precio por persona.
-    packages.sort((a, b) => a.costoPaquetePorPersona - b.costoPaquetePorPersona);
+    // 2. Generar 8 opciones de hoteles
+    const diasViaje = parseInt(data.diasViaje);
+    for (let i = 1; i <= 8; i++) {
+      const precioNoche = Math.floor(Math.random() * 400000) + 150000; // COP 150k a 550k
+      
+      hotels.push({
+        id: `hotel_${i}`,
+        nombre: `Hotel ${data.destino.toUpperCase()} Resort & Spa ${i}`,
+        estrellas: Math.floor(Math.random() * 2) + 3,
+        rating: (Math.random() * 2 + 7.5).toFixed(1),
+        zona: "Centro Histórico / Zona Hotelera",
+        regimen: data.regimen !== "Sin preferencia" ? data.regimen : (Math.random() > 0.5 ? "Desayuno" : "Todo incluido"),
+        precioPorNoche: precioNoche,
+        precioTotal: precioNoche * diasViaje,
+        enlace: `https://booking.com/hotel/${data.destino.toLowerCase()}-${i}`
+      });
+    }
 
-    return NextResponse.json({ success: true, packages });
+    // Ordenar Vuelos por precio por persona (menor a mayor)
+    flights.sort((a, b) => a.precioPorPersona - b.precioPorPersona);
+    // Ordenar Hoteles por precio total (menor a mayor)
+    hotels.sort((a, b) => a.precioTotal - b.precioTotal);
+
+    return NextResponse.json({ success: true, flights, hotels });
   } catch (error: any) {
     console.error("Error en scraping:", error);
     return NextResponse.json({ success: false, error: "Fallo el scraping: " + error.message }, { status: 500 });
