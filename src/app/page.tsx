@@ -23,10 +23,15 @@ export default function Home() {
       });
 
       const json = await res.json();
+      
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Error desconocido en el servidor");
+      }
+      
       setResults(json.packages);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Error en el scraping.");
+      alert("Error en el scraping: " + error.message);
     } finally {
       setLoading(false);
     }
